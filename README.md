@@ -6,6 +6,10 @@ Chiptune sound synthesis from code — the four voices of the NES and the Game
 Boy, generated from scratch. No samples, no recordings, no dependencies beyond
 NumPy. Every sound is arithmetic.
 
+```sh
+pip install blip8      # or: uv add blip8
+```
+
 ```python
 from blip8 import melody, play, sfx
 
@@ -190,7 +194,7 @@ sweeps and bit crushing.
 ## Develop
 
 ```sh
-uv run pytest        # 214 tests, all asserting things you can hear
+uv run pytest        # 216 tests, all asserting things you can hear
 uv run ruff check .  # lint
 uv run ruff format . # format
 ```

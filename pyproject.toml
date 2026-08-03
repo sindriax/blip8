@@ -1,13 +1,41 @@
 [project]
 name = "blip8"
-version = "0.0.1"
-description = "NES-style sound and music from code. Four voices, no samples."
+version = "0.1.0"
+description = "Chiptune sound synthesis from code — the four voices of the NES and Game Boy, no samples."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "sindriax" }]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "chiptune",
+    "8-bit",
+    "nes",
+    "gameboy",
+    "synthesis",
+    "audio",
+    "sound",
+    "wav",
+    "retro",
+    "gamedev",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Topic :: Games/Entertainment",
+]
 dependencies = [
     "numpy>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/sindriax/blip8"
+Repository = "https://github.com/sindriax/blip8"
+Issues = "https://github.com/sindriax/blip8/issues"
 
 # [project.scripts]
 # blip8 = "blip8.cli:main"
@@ -15,6 +43,9 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+exclude = [".claude", ".github", ".gitignore"]
 
 [dependency-groups]
 dev = [
