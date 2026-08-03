@@ -1,0 +1,20 @@
+# This is Python's package.json. Same job: name, version, dependencies.
+[project]
+name = "blip8"
+version = "0.0.1"
+description = "NES-style sound and music from code. Four voices, no samples."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "sindriax" }]
+dependencies = [
+    "numpy>=2.0", # array math — audio is just a very long array of numbers
+]
+
+# Like the "bin" field in package.json: installs a `blip8` terminal command.
+# (Points at a function we haven't written yet — that's phase 5, the MIDI CLI.)
+# [project.scripts]
+# blip8 = "blip8.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
