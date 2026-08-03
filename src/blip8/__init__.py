@@ -3,6 +3,6 @@
 # Re-exports: this is what makes `from blip8 import square, play` work
 # without users needing to know which internal file things live in.
 from .play import play, save
-from .wave import SAMPLE_RATE, square
+from .wave import SAMPLE_RATE, noise, square, triangle
 
-__all__ = ["SAMPLE_RATE", "play", "save", "square"]
+__all__ = ["SAMPLE_RATE", "noise", "play", "save", "square", "triangle"]
