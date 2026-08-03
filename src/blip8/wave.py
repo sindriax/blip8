@@ -13,30 +13,66 @@ import numpy as np
 # every duration calculation in the library assumes it.
 SAMPLE_RATE = 44100
 
+# A pitch can be one steady number (440) or a glide between two (880, 110).
+# `float | tuple` is Python's "either of these types" — like a union type in
+# TypeScript. It's documentation for humans and editors; nothing enforces it
+# at runtime.
+Pitch = float | tuple[float, float]
 
-def square(freq: float, length: float, duty: float = 0.5, volume: float = 0.5) -> np.ndarray:
+
+def _phase(freq: Pitch, length: float) -> np.ndarray:
+    """Where are we inside the current cycle, for every sample? (0.0 → 1.0)
+
+    Both square() and triangle() need this exact ramp and then shape it
+    differently, so it lives here once. Leading underscore = internal, not part
+    of the public API.
+
+    The interesting half is the sweep. For a steady pitch you can just
+    multiply: after t seconds at 440 Hz you've been through t * 440 cycles.
+    That shortcut breaks the moment the frequency changes over time, because
+    "how many cycles have I done" now depends on the whole history, not just
+    the current pitch.
+
+    So instead you *accumulate*: work out how much of a cycle each individual
+    sample advances by (freq / SAMPLE_RATE), then add them all up as you go.
+    np.cumsum is the running total. This is called phase accumulation and it's
+    how every real synthesizer tracks pitch.
+    """
+    count = int(SAMPLE_RATE * length)
+
+    if isinstance(freq, (tuple, list)):
+        start, end = freq
+        # One target frequency per sample, sliding evenly from start to end.
+        freqs = np.linspace(start, end, count)
+        advance_per_sample = freqs / SAMPLE_RATE
+        return np.cumsum(advance_per_sample) % 1.0
+
+    # Steady pitch: the multiply shortcut is fine, and easier to read.
+    t = np.arange(count) / SAMPLE_RATE
+    return (t * freq) % 1.0
+
+
+def square(freq: Pitch, length: float, duty: float = 0.5, volume: float = 0.5) -> np.ndarray:
     """Generate a square wave — THE chiptune sound (NES melody channels).
 
-    freq:   pitch in Hz (440 = the A above middle C)
+    freq:   pitch in Hz (440 = the A above middle C), or a (start, end) pair
+            to glide between two pitches: (110, 880) rises, (880, 110) falls.
     length: duration in seconds
     duty:   fraction of each cycle spent "up". The NES offered 0.125, 0.25
             and 0.5 — this one knob is why Mega Man and Zelda sound
             different on the same chip. 0.5 = hollow/round, 0.125 = thin/nasal.
     volume: 0.0 to 1.0
     """
-    # t is an array of time stamps: [0, 1/44100, 2/44100, ...] up to `length`.
-    t = np.arange(int(SAMPLE_RATE * length)) / SAMPLE_RATE
-
-    # (t * freq) % 1.0 gives where we are inside each cycle (0.0 to 1.0).
+    # phase says where we are inside each cycle (0.0 to 1.0).
     # First `duty` fraction of the cycle → +1 (speaker pushed out),
     # the rest → -1 (pulled in). That hard jump IS the square-wave buzz.
-    phase = (t * freq) % 1.0
+    phase = _phase(freq, length)
     wave = np.where(phase < duty, 1.0, -1.0)
 
     return wave * volume
 
 
-def triangle(freq: float, length: float, volume: float = 0.5) -> np.ndarray:
+def triangle(freq: Pitch, length: float, volume: float = 0.5) -> np.ndarray:
     """Generate a triangle wave — the NES bassline voice.
 
     Same pitch as a square at the same freq, but soft and flute-like instead
@@ -44,14 +80,12 @@ def triangle(freq: float, length: float, volume: float = 0.5) -> np.ndarray:
     makes it sit *under* a melody without fighting it. No `duty` knob here —
     that's a square-wave-only thing.
 
-    freq:   pitch in Hz
+    freq:   pitch in Hz, or a (start, end) pair to glide
     length: duration in seconds
     volume: 0.0 to 1.0
     """
-    t = np.arange(int(SAMPLE_RATE * length)) / SAMPLE_RATE
-
-    # Same phase trick as square: 0.0 → 1.0 once per cycle.
-    phase = (t * freq) % 1.0
+    # Same phase ramp as square: 0.0 → 1.0 once per cycle.
+    phase = _phase(freq, length)
 
     # Now shape it into a ramp up and back down instead of a hard jump.
     # abs(phase - 0.5) is a V: 0.5 at the cycle's start, 0.0 in the middle,

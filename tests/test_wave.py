@@ -173,6 +173,63 @@ def test_volume_scales_the_output(osc):
 
 
 # --------------------------------------------------------------------------
+# pitch sweeps — passing (start, end) instead of one frequency
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("osc", [square, triangle])
+def test_sweep_has_the_right_length(osc):
+    """A glide shouldn't change how long the sound is."""
+    assert len(osc(freq=(200, 1600), length=0.3)) == int(SAMPLE_RATE * 0.3)
+
+
+@pytest.mark.parametrize("osc", [square, triangle])
+def test_rising_sweep_speeds_up_over_time(osc):
+    """The defining property of a rising glide: more cycles happen in the
+    second half of the sound than in the first."""
+    samples = osc(freq=(110, 880), length=1.0)
+    midpoint = len(samples) // 2
+
+    first_half = _count_cycles(samples[:midpoint])
+    second_half = _count_cycles(samples[midpoint:])
+
+    assert second_half > first_half * 2
+
+
+@pytest.mark.parametrize("osc", [square, triangle])
+def test_falling_sweep_slows_down_over_time(osc):
+    """And a falling glide does the opposite — this is the laser sound."""
+    samples = osc(freq=(880, 110), length=1.0)
+    midpoint = len(samples) // 2
+
+    assert _count_cycles(samples[:midpoint]) > _count_cycles(samples[midpoint:]) * 2
+
+
+@pytest.mark.parametrize("osc", [square, triangle])
+def test_sweep_between_identical_pitches_matches_a_steady_note(osc):
+    """A "glide" from 440 to 440 is just a note at 440. Sanity-checks that the
+    accumulated phase maths agrees with the multiply shortcut."""
+    swept = _count_cycles(osc(freq=(440, 440), length=0.5))
+    steady = _count_cycles(osc(freq=440, length=0.5))
+    assert swept == pytest.approx(steady, abs=1)
+
+
+@pytest.mark.parametrize("osc", [square, triangle])
+def test_sweep_cycle_count_matches_the_average_pitch(osc):
+    """Gliding evenly from 200 to 400 Hz over a second should produce about as
+    many cycles as a steady 300 Hz would."""
+    swept = _count_cycles(osc(freq=(200, 400), length=1.0))
+    assert swept == pytest.approx(300, abs=2)
+
+
+def test_sweep_still_respects_duty():
+    """The duty knob and the glide shouldn't interfere with each other."""
+    samples = square(freq=(200, 400), length=1.0, duty=0.25)
+    fraction_up = np.count_nonzero(samples > 0) / len(samples)
+    assert fraction_up == pytest.approx(0.25, abs=0.01)
+
+
+# --------------------------------------------------------------------------
 # helper
 # --------------------------------------------------------------------------
 
