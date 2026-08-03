@@ -7,3 +7,6 @@ dist/
 
 # Private roadmap / learning notes — tracked locally, not published.
 PLAN.md
+
+# macOS
+.DS_Store
