@@ -15,7 +15,7 @@ Run them all with:  uv run pytest
 import numpy as np
 import pytest
 
-from blip8 import SAMPLE_RATE, noise, square, triangle
+from blip8 import BELL_TABLE, SAMPLE_RATE, SINE_TABLE, noise, square, triangle, wavetable
 
 # pytest collects any function starting with `test_` in any file named
 # `test_*.py`. No registration, no suite object — that's the whole convention.
@@ -227,6 +227,72 @@ def test_sweep_still_respects_duty():
     samples = square(freq=(200, 400), length=1.0, duty=0.25)
     fraction_up = np.count_nonzero(samples > 0) / len(samples)
     assert fraction_up == pytest.approx(0.25, abs=0.01)
+
+
+# --------------------------------------------------------------------------
+# wavetable — the Game Boy's user-defined voice
+# --------------------------------------------------------------------------
+
+
+def test_a_two_entry_table_is_exactly_a_square_wave():
+    """The clearest proof the indexing maths is right.
+
+    [1.0, -1.0] means "first half of the cycle up, second half down", which is
+    the definition of a square wave at duty 0.5 — so the two functions should
+    agree sample for sample, not merely sound similar.
+    """
+    from_table = wavetable([1.0, -1.0], freq=440, length=0.25)
+    from_square = square(freq=440, length=0.25, duty=0.5)
+    assert np.array_equal(from_table, from_square)
+
+
+def test_wavetable_only_outputs_values_from_the_table():
+    """It's a lookup, not a calculation — nothing else may appear."""
+    table = [1.0, 0.5, 0.0, -0.5]
+    samples = wavetable(table, freq=440, length=0.1, volume=1.0)
+    assert set(np.unique(samples)).issubset(set(table))
+
+
+def test_wavetable_length_and_volume():
+    samples = wavetable(SINE_TABLE, freq=440, length=0.2, volume=0.25)
+    assert len(samples) == int(SAMPLE_RATE * 0.2)
+    assert np.max(np.abs(samples)) == pytest.approx(0.25, abs=0.01)
+
+
+def test_wavetable_accepts_a_plain_python_list():
+    """Users shouldn't need to know what a NumPy array is to define a shape."""
+    assert len(wavetable([0.0, 1.0, 0.0, -1.0], freq=440, length=0.1)) > 0
+
+
+def test_wavetable_takes_the_pitch_of_the_table_not_its_length():
+    """A 4-entry and a 32-entry table at 440 Hz must be the same note.
+
+    The table describes the *shape* of one cycle; how many numbers it took to
+    describe it must not affect pitch.
+    """
+    short = _count_cycles(wavetable([1.0, 1.0, -1.0, -1.0], freq=440, length=0.5))
+    long = _count_cycles(wavetable(SINE_TABLE, freq=440, length=0.5))
+    assert short == pytest.approx(long, abs=1)
+
+
+def test_wavetable_supports_sweeps_like_the_other_oscillators():
+    samples = wavetable(SINE_TABLE, freq=(110, 880), length=1.0)
+    midpoint = len(samples) // 2
+    assert _count_cycles(samples[midpoint:]) > _count_cycles(samples[:midpoint]) * 2
+
+
+@pytest.mark.parametrize(("name", "table"), [("sine", SINE_TABLE), ("bell", BELL_TABLE)])
+def test_preset_tables_are_game_boy_shaped(name, table):
+    """32 entries was the hardware's limit, and values must stay in range."""
+    assert len(table) == 32
+    assert np.all(np.abs(table) <= 1.0)
+
+
+def test_sine_table_is_smooth():
+    """A sine has no jumps — that's what makes it the purest tone. Same test
+    shape as the square-vs-triangle comparison above."""
+    samples = wavetable(SINE_TABLE, freq=100, length=0.1)
+    assert np.max(np.abs(np.diff(samples))) < 0.2
 
 
 # --------------------------------------------------------------------------

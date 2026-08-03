@@ -83,3 +83,25 @@ def envelope(
     # (These fades are straight lines. Real instruments decay in a curve —
     # fast at first, then trailing off. Good enough for now.)
     return samples * gain
+
+
+def crunch(samples: np.ndarray, bits: int = 4) -> np.ndarray:
+    """Reduce how many volume levels a sound is allowed to use.
+
+    This is where the Game Boy's grit comes from. Our floats can sit anywhere
+    between -1.0 and 1.0 — effectively infinite precision. Real 8-bit hardware
+    could not: the Game Boy's wave channel had 16 levels total, so every value
+    had to snap to the nearest one. Those tiny snapping errors add a fuzzy
+    edge, which is exactly what people mean by "lo-fi".
+
+    Producers call this **bitcrushing** and reach for it deliberately.
+
+    bits=4 is Game Boy accurate (16 levels). bits=1 is barely music. bits=8 is
+    subtle. Try them and listen — this is the most fun function in the library.
+    """
+    levels = 2**bits
+    half = levels / 2
+
+    # Scale up so the levels land on whole numbers, round to the nearest one,
+    # then scale back down. np.round does the snapping.
+    return np.round(samples * half) / half

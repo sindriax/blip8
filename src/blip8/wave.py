@@ -118,3 +118,62 @@ def noise(length: float, volume: float = 0.5) -> np.ndarray:
     wave = np.random.uniform(-1.0, 1.0, size=count)
 
     return wave * volume
+
+
+# --------------------------------------------------------------------------
+# The Game Boy's fourth voice
+# --------------------------------------------------------------------------
+# The NES's four voices were all hard-wired. The Game Boy kept two squares and
+# the noise, but replaced the fixed triangle with something better: a channel
+# where YOU supply the waveform. You hand it 32 numbers describing one cycle of
+# any shape you like and it loops them forever.
+#
+# That's a wavetable, and it's the same principle modern synths like Serum and
+# Vital are built on — they just use thousands of samples instead of 32, and
+# let you morph between tables.
+#
+# A "table" here is any list of numbers between -1.0 and 1.0. Short is fine;
+# [1.0, -1.0] is a square wave, and 32 was the Game Boy's actual limit.
+
+# One cycle of a sine, at the Game Boy's 32-sample resolution. A sine is the
+# purest possible tone — no character at all, just the note. blip8 has no
+# sine() function, so this is how you get one.
+SINE_TABLE = np.sin(2 * np.pi * np.arange(32) / 32)
+
+# A sine with a quieter copy an octave up mixed in, which reads as "bell" or
+# "music box" to the ear. Adding a higher, quieter copy of a wave to itself is
+# additive synthesis in its simplest form.
+BELL_TABLE = 0.7 * np.sin(2 * np.pi * np.arange(32) / 32) + 0.3 * np.sin(
+    4 * np.pi * np.arange(32) / 32
+)
+
+
+def wavetable(
+    table: np.ndarray | list[float],
+    freq: Pitch,
+    length: float,
+    volume: float = 0.5,
+) -> np.ndarray:
+    """Generate a wave from a shape you define — the Game Boy's wave channel.
+
+    table:  the numbers describing one cycle, each -1.0 to 1.0. Try
+            SINE_TABLE, BELL_TABLE, or your own: [1, 0.5, 0, -0.5, -1, ...]
+    freq:   pitch in Hz, or a (start, end) pair to glide
+    length: duration in seconds
+    volume: 0.0 to 1.0
+    """
+    # np.asarray accepts a plain Python list OR an existing array and gives
+    # back an array either way, so callers don't have to care which they have.
+    table = np.asarray(table, dtype=np.float64)
+
+    # Same 0.0 → 1.0 ramp every oscillator starts from.
+    phase = _phase(freq, length)
+
+    # Stretch that ramp across the table's length and truncate to whole
+    # numbers, turning "43% through the cycle" into "table slot 13".
+    slots = (phase * len(table)).astype(np.int64) % len(table)
+
+    # Fancy indexing: handing NumPy an array of indices returns an array of the
+    # values at those indices. One line, no loop, and it's how sample playback
+    # works in every sampler ever written.
+    return table[slots] * volume

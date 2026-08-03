@@ -7,7 +7,7 @@ where the sound is loud and where it's quiet.
 import numpy as np
 import pytest
 
-from blip8 import SAMPLE_RATE, envelope, square
+from blip8 import SAMPLE_RATE, SINE_TABLE, crunch, envelope, square, triangle, wavetable
 
 
 def test_envelope_does_not_change_the_length():
@@ -83,3 +83,47 @@ def test_no_attack_or_release_leaves_the_sound_alone():
     raw = square(freq=440, length=0.2)
     shaped = envelope(raw, attack=0.0, decay=0.0, sustain=1.0, release=0.0)
     assert np.array_equal(raw, shaped)
+
+
+# --------------------------------------------------------------------------
+# crunch — bit reduction, the lo-fi grit
+# --------------------------------------------------------------------------
+
+
+def test_crunch_reduces_the_number_of_distinct_values():
+    """The whole definition of the effect: fewer volume levels allowed.
+
+    A triangle slides smoothly through hundreds of values; at 4 bits it may
+    only use 16-ish of them.
+    """
+    smooth = triangle(freq=440, length=0.1)
+    crushed = crunch(smooth, bits=4)
+
+    assert len(np.unique(smooth)) > 100
+    assert len(np.unique(crushed)) <= 17
+
+
+def test_crunch_keeps_the_length():
+    samples = wavetable(SINE_TABLE, freq=440, length=0.2)
+    assert len(crunch(samples)) == len(samples)
+
+
+def test_fewer_bits_means_fewer_levels():
+    """Monotonic: 2 bits must be coarser than 4, which is coarser than 8."""
+    smooth = triangle(freq=440, length=0.1)
+    counts = [len(np.unique(crunch(smooth, bits=b))) for b in (2, 4, 8)]
+    assert counts[0] < counts[1] < counts[2]
+
+
+def test_crunch_stays_in_speaker_range():
+    """Rounding must never push a sample past 1.0 and cause clipping."""
+    loud = triangle(freq=440, length=0.1, volume=1.0)
+    assert np.max(np.abs(crunch(loud, bits=4))) <= 1.0
+
+
+def test_crunch_is_roughly_faithful():
+    """It should add grit, not replace the sound. Each sample stays close to
+    where it started — within half a level."""
+    smooth = triangle(freq=440, length=0.1)
+    error = np.max(np.abs(crunch(smooth, bits=4) - smooth))
+    assert error <= 1 / 16  # half of one 4-bit step

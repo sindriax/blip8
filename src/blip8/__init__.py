@@ -2,8 +2,22 @@
 
 # Re-exports: this is what makes `from blip8 import square, play` work
 # without users needing to know which internal file things live in.
+from . import sfx
 from .play import play, save
-from .shape import envelope
-from .wave import SAMPLE_RATE, noise, square, triangle
+from .shape import crunch, envelope
+from .wave import BELL_TABLE, SAMPLE_RATE, SINE_TABLE, noise, square, triangle, wavetable
 
-__all__ = ["SAMPLE_RATE", "envelope", "noise", "play", "save", "square", "triangle"]
+__all__ = [
+    "BELL_TABLE",
+    "SAMPLE_RATE",
+    "SINE_TABLE",
+    "crunch",
+    "envelope",
+    "noise",
+    "play",
+    "save",
+    "sfx",
+    "square",
+    "triangle",
+    "wavetable",
+]
