@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/sindriax/blip8/actions/workflows/ci.yml/badge.svg)](https://github.com/sindriax/blip8/actions/workflows/ci.yml)
 
-Chiptune sound synthesis from code — the four voices of the NES and the Game
+Chiptune sound synthesis from code: the four voices of the NES and the Game
 Boy, generated from scratch. No samples, no recordings, no dependencies beyond
 NumPy. Every sound is arithmetic.
 
@@ -24,21 +24,27 @@ Or build sounds yourself from the raw waveforms:
 from blip8 import envelope, noise, play, square, triangle
 
 play(square(freq=440, length=0.5))              # 1983 in one line
-play(square(freq=440, length=0.5, duty=0.125))  # same note, thinner — the NES knob
+play(square(freq=440, length=0.5, duty=0.125))  # same note, thinner (the NES knob)
 play(square(freq=440, length=0.5) + triangle(freq=220, length=0.5))  # melody + bass
 
 play(square(freq=(1800, 200), length=0.25))     # a (start, end) pitch = laser
 play(envelope(noise(length=1.5), decay=1.5, sustain=0.0))  # noise + fade = cymbal
 ```
 
-## Why
+## Why I made this
 
-Digital audio is just a very long list of numbers describing where a speaker
-cone should be. Sounds that defined a generation of games came out of chips
-that could only make four shapes. That's a small enough system to build from
-first principles and understand completely — so this builds it, one voice at a
-time, and every function is commented with what it's actually doing to your
-ears.
+Every time I built a game I ended up writing the same throwaway script again:
+forty lines of NumPy to make a coin sound, pasted into the repo, tweaked until
+it was close enough, then forgotten. The next game started from zero.
+
+So I wrote the library I should have written the first time. Now it is
+`pip install blip8` and `sfx.coin()`.
+
+It also turned into the thing I use to learn Python properly, coming from
+TypeScript and Go, and to find out whether audio programming is a direction I
+want to go in. The NES had four voices and no way to play a recording, which
+makes it a small enough system to build from first principles and understand
+completely.
 
 ## Hear it
 
@@ -51,31 +57,31 @@ uv run examples/melody.py         # actual music: four voices, chords vs arpeggi
 uv run examples/see_it.py         # print the waveforms instead of playing them
 ```
 
-`uv` sets up Python and installs NumPy on first run — nothing else to do.
-Playback shells out to macOS `afplay`; `save()` writes a `.wav` anywhere.
+`uv` sets up Python and installs NumPy on first run, so there is nothing else
+to do. Playback shells out to macOS `afplay`; `save()` writes a `.wav` anywhere.
 
 ## The voices
 
 The NES sound chip had four, each locked to one waveform. The Game Boy's had
 four too, with a twist.
 
-| Voice    | Shape             | Sounds like          | Used for             | Status          |
-| -------- | ----------------- | -------------------- | -------------------- | --------------- |
-| Pulse    | square            | buzzy, electronic    | melody, harmony      | ✅ `square()`   |
-| Triangle | ramp up/down      | soft, flute-ish      | basslines            | ✅ `triangle()` |
-| Noise    | random            | static               | drums, explosions    | ✅ `noise()`    |
+| Voice    | Shape             | Sounds like          | Used for             | Status           |
+| -------- | ----------------- | -------------------- | -------------------- | ---------------- |
+| Pulse    | square            | buzzy, electronic    | melody, harmony      | ✅ `square()`    |
+| Triangle | ramp up/down      | soft, flute-ish      | basslines            | ✅ `triangle()`  |
+| Noise    | random            | static               | drums, explosions    | ✅ `noise()`     |
 | Wave     | anything you draw | whatever you make it | the Game Boy's trick | ✅ `wavetable()` |
 
-Square waves have one knob, `duty` — how much of each cycle is spent "up".
-`0.5` sounds round and hollow, `0.125` thin and nasal. Same pitch, different
-character. That knob is most of the NES's personality.
+Square waves have one knob, `duty`, which is how much of each cycle is spent
+"up". `0.5` sounds round and hollow, `0.125` thin and nasal. Same pitch,
+different character. That knob is most of the NES's personality.
 
 ## Shaping
 
-The waveforms are the raw material; shaping them over time is what makes them
+The waveforms are the raw material. Shaping them over time is what makes them
 recognisable as *things*.
 
-**`envelope()`** controls volume over time — the ADSR curve every synth has.
+**`envelope()`** controls volume over time, the ADSR curve every synth has.
 It's why a drum and a piano playing the same note are unmistakable. It also
 stops notes ending in a click, since they now finish at silence instead of
 mid-cycle.
@@ -87,8 +93,8 @@ Between them, the same `noise()` becomes a snare (fast fade) or a cymbal
 (slow fade), and a `triangle()` sliding from 120 Hz to 40 Hz becomes a kick
 drum. `examples/sound_design.py` plays all of it.
 
-**`crunch()`** throws precision away on purpose — `bits=4` allows only 16
-volume levels, which is what the Game Boy actually had. Producers call this
+**`crunch()`** throws precision away on purpose. `bits=4` allows only 16 volume
+levels, which is what the Game Boy actually had. Producers call this
 bitcrushing and reach for it deliberately.
 
 ## Recipes
@@ -103,12 +109,12 @@ sfx.kick()   sfx.snare()   sfx.hat()    sfx.crash()
 ```
 
 Each returns an array rather than playing it, so they mix (`+`), chain, and
-`save()`. Every one is built only from the waveforms and shapers above — open
+`save()`. Every one is built only from the waveforms and shapers above. Open
 `src/blip8/sfx.py` to see exactly what any given sound is made of.
 
 ## Music
 
-Nobody thinks in Hz, so `note("E5")` converts names to frequencies — an octave
+Nobody thinks in Hz, so `note("E5")` converts names to frequencies. An octave
 up doubles the frequency, and a semitone is the twelfth root of two.
 
 Patterns are strings, one token per step in time. A note name plays, `.` holds
@@ -120,12 +126,12 @@ melody("C2 . . . G2 . . .", voice=triangle)       # a bassline, notes held
 melody("C5 - C5 -", duty=0.125)                   # extra kwargs reach the voice
 ```
 
-That's a **tracker** — the text-grid format chiptune musicians actually use,
+That's a **tracker**, the text-grid format chiptune musicians actually use,
 arrived at because it's the obvious way to write music as a string.
 
 `chord("C4 E4 G4")` plays notes together; `arpeggio("C4 E4 G4")` plays them one
 at a time, fast, until your ear fuses them into a chord. The second one exists
-because the NES only had four voices and couldn't spare three for one chord —
+because the NES only had four voices and couldn't spare three for one chord,
 which is why chiptune has that frantic bubbling sound.
 
 Arrangement is two functions. `at(time, sound)` delays; `layer(*sounds)` mixes,
@@ -137,9 +143,9 @@ layer(at(0.0, sfx.kick()), at(0.5, sfx.snare()))
 
 ## See it
 
-GitHub can't play audio, so `show()` draws the waveform in your terminal —
+GitHub can't play audio, so `show()` draws the waveform in your terminal:
 min/max per column, the way an audio editor does. Zoom in on a few cycles to
-see the shape; zoom out to a whole sound to see its envelope.
+see the shape, or out to a whole sound to see its envelope.
 
 ```python
 from blip8 import show, square
@@ -206,8 +212,6 @@ every claim in the docstrings turns out to be a claim about numbers.
 
 All four voices, envelopes, sweeps, bit crushing, 14 ready-made game sounds,
 note names, patterns, chords, arpeggios and arrangement. It makes music now.
-
-Next up: publishing to PyPI, then MIDI import.
 
 The roadmap ends with `blip8 cover song.mid` turning any MIDI file into an
 8-bit cover.

@@ -1,7 +1,7 @@
 [project]
 name = "blip8"
 version = "0.1.0"
-description = "Chiptune sound synthesis from code — the four voices of the NES and Game Boy, no samples."
+description = "Chiptune sound synthesis from code: the four voices of the NES and Game Boy, no samples."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "sindriax" }]
