@@ -88,4 +88,4 @@ pitch sweeps. Next up is a recipe layer — `sfx.coin()`, `sfx.crash()` — so
 common sounds are one call instead of three, plus the Game Boy's wave channel.
 
 The roadmap ends with `blip8 cover song.mid` turning any MIDI file into an
-8-bit cover. See [PLAN.md](PLAN.md).
+8-bit cover.

@@ -4,3 +4,6 @@ __pycache__/
 dist/
 *.wav
 *.egg-info/
+
+# Private roadmap / learning notes — tracked locally, not published.
+PLAN.md

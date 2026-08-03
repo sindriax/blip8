@@ -81,6 +81,5 @@ def envelope(
     # NumPy does all `count` multiplications in one operation, no loop.
     #
     # (These fades are straight lines. Real instruments decay in a curve —
-    # fast at first, then trailing off. Good enough for now; it's on the
-    # someday list in PLAN.md.)
+    # fast at first, then trailing off. Good enough for now.)
     return samples * gain
