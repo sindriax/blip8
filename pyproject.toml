@@ -18,3 +18,18 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# Like "devDependencies" in package.json: needed to work ON blip8, but not
+# installed for people who just `pip install blip8`. `uv run` installs these
+# automatically; `uv add --dev <name>` is how they got here.
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1", # test runner
+    "ruff>=0.16.1",  # linter + formatter (one tool, replaces flake8 + black)
+]
+
+[tool.ruff]
+line-length = 100 # the default 88 is tight for heavily-commented audio math
+# Ruff also reformats Python snippets inside markdown; leave the README's
+# hand-aligned comments alone.
+extend-exclude = ["*.md"]

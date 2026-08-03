@@ -1,0 +1,46 @@
+# Runs the test suite and the linter on every push and pull request.
+# GitHub spins up a fresh Linux machine, follows these steps, and shows a green
+# check or a red X on the commit. Nothing to install locally — this only runs
+# on GitHub's side.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Run the whole job twice, once per Python version, to catch anything that
+    # depends on a specific interpreter. pyproject says >=3.12, so both must work.
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4 # clone the repo onto the runner
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true # reuse downloaded packages between runs
+
+      - name: Install dependencies
+        # --frozen means "install exactly what uv.lock says, don't re-resolve".
+        # If someone edits pyproject.toml without updating the lockfile, this
+        # step fails — which is the point.
+        run: uv sync --frozen
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest -v
