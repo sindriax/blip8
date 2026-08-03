@@ -44,6 +44,7 @@ uv run examples/four_voices.py    # square vs triangle vs noise
 uv run examples/sound_design.py   # snare, crash, kick, laser, power-up, coin
 uv run examples/sfx_menu.py       # every recipe, the wave channel, a drum groove
 uv run examples/melody.py         # actual music: four voices, chords vs arpeggios
+uv run examples/see_it.py         # print the waveforms instead of playing them
 ```
 
 `uv` sets up Python and installs NumPy on first run — nothing else to do.
@@ -130,10 +131,66 @@ padding to the longest:
 layer(at(0.0, sfx.kick()), at(0.5, sfx.snare()))
 ```
 
+## See it
+
+GitHub can't play audio, so `show()` draws the waveform in your terminal —
+min/max per column, the way an audio editor does. Zoom in on a few cycles to
+see the shape; zoom out to a whole sound to see its envelope.
+
+```python
+from blip8 import show, square
+show(square(freq=440, length=0.007), "three cycles")
+```
+
+```
+square, zoomed in on three cycles
+███████████         ███████████         ███████████           ██
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+──────────█─────────█─────────█─────────█─────────█───────────█─
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+          █         █         █         █         █           █ 
+          ███████████         ███████████         █████████████ 
+
+triangle, the same three cycles
+█                  ██                  ██                    ██ 
+██                ████                ████                  ██ █
+ ██              ██  ██              ██  ██                ██   
+  ██            ██    ██            ██    ██              ██    
+   ██          ██      ██          ██      ██           ██      
+────██────────██────────██────────██────────██─────────██───────
+     ██      ██          ██      ██          ██       ██        
+      ██    ██            ██    ██            ██     ██         
+       ██  ██              ██  ██              ██  ██           
+        ████                ████                ████            
+         ██                  ██                  ██             
+
+a cymbal crash, zoomed out to 1.2 seconds
+███                                                             
+█████████████████                                               
+███████████████████████████████                                 
+████████████████████████████████████████████                    
+██████████████████████████████████████████████████████████      
+████████████████████████████████████████████████████████████████
+██████████████████████████████████████████████████████████      
+████████████████████████████████████████████                    
+██████████████████████████████                                  
+█████████████████                                               
+███                                                             
+
+```
+
+`uv run examples/see_it.py` prints all four voices, the duty knob, envelopes,
+sweeps and bit crushing.
+
 ## Develop
 
 ```sh
-uv run pytest        # 196 tests, all asserting things you can hear
+uv run pytest        # 214 tests, all asserting things you can hear
 uv run ruff check .  # lint
 uv run ruff format . # format
 ```

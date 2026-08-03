@@ -3,6 +3,7 @@
 # Re-exports: this is what makes `from blip8 import square, play` work
 # without users needing to know which internal file things live in.
 from . import sfx
+from .draw import plot, show
 from .notes import midi_to_freq, note, note_to_midi
 from .pattern import arpeggio, at, chord, layer, melody, sequence, silence
 from .play import play, save
@@ -25,9 +26,11 @@ __all__ = [
     "note",
     "note_to_midi",
     "play",
+    "plot",
     "save",
     "sequence",
     "sfx",
+    "show",
     "silence",
     "square",
     "triangle",
