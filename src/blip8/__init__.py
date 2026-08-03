@@ -1,7 +1,5 @@
 """blip8 — NES-style sound and music from code. Four voices, no samples."""
 
-# Re-exports: this is what makes `from blip8 import square, play` work
-# without users needing to know which internal file things live in.
 from . import sfx
 from .draw import plot, show
 from .notes import midi_to_freq, note, note_to_midi

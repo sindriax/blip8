@@ -1,8 +1,4 @@
-"""Tests for patterns, chords and arrangement.
-
-Most of these are about *timing* — a pattern language whose notes land at the
-wrong moment is worse than no pattern language.
-"""
+"""Tests for patterns, chords and arrangement, mostly about timing."""
 
 import numpy as np
 import pytest
@@ -27,8 +23,7 @@ from blip8 import (
 
 
 def test_four_sixteenth_notes_make_one_beat():
-    """At 120 bpm a beat is half a second, and the default 4 steps per beat
-    means four tokens should total that."""
+    """At 120 bpm a beat is half a second, and the default is 4 steps."""
     sound = melody("C4 D4 E4 F4", bpm=120)
     assert len(sound) / SAMPLE_RATE == pytest.approx(0.5, abs=0.01)
 
@@ -53,8 +48,8 @@ def test_a_hold_extends_the_previous_note():
 
 
 def test_a_held_note_is_continuous_not_repeated():
-    """The audible difference between a hold and a repeat: a repeat has to fade
-    out and back in between steps, so it dips to silence in the middle."""
+    """A repeat fades out and back in between steps, so it dips to silence in
+    the middle; a hold does not."""
     held = melody("C4 .", bpm=120)
     repeated = melody("C4 C4", bpm=120)
 
@@ -77,8 +72,7 @@ def test_a_rest_is_actually_silent():
 
 
 def test_a_rest_takes_up_its_step():
-    """Silence has to occupy time, or rests would just vanish and everything
-    after them would arrive early."""
+    """Rests must occupy time, or everything after them arrives early."""
     with_rest = melody("C4 - C4 -", bpm=120)
     without = melody("C4 C4 C4 C4", bpm=120)
     assert len(with_rest) == pytest.approx(len(without), rel=0.01)
@@ -100,22 +94,22 @@ def test_bad_note_in_a_pattern_raises():
 
 @pytest.mark.parametrize("name", ["A4", "C4", "E5", "G3"])
 def test_the_notes_come_out_at_the_right_pitch(name):
-    """The end-to-end check: a name in the pattern string produces a wave at
-    the frequency note() promises. Measured by counting cycles."""
+    """End to end: a name in the pattern produces a wave at the frequency
+    note() promises."""
     sound = melody(f"{name} . . . . . . .", bpm=60, steps_per_beat=4)  # 8 steps = 2s
     expected_cycles = note(name) * (len(sound) / SAMPLE_RATE)
     assert _count_cycles(sound) == pytest.approx(expected_cycles, rel=0.02)
 
 
 def test_extra_keyword_arguments_reach_the_oscillator():
-    """`duty` isn't a melody() parameter — it's forwarded to square()."""
+    """`duty` is not a melody() parameter; it is forwarded to square()."""
     thin = melody("C4 C4 C4 C4", duty=0.125, volume=0.5)
     fraction_up = np.count_nonzero(thin > 0) / len(thin)
     assert fraction_up < 0.2  # nowhere near the 0.5 of a default square
 
 
 def test_melody_accepts_a_different_voice():
-    """Same pattern on the triangle voice should be smooth, not buzzy."""
+    """The same pattern on the triangle voice should be smooth, not buzzy."""
     buzzy = melody("C4 C4", voice=square)
     smooth = melody("C4 C4", voice=triangle)
     assert np.max(np.abs(np.diff(smooth))) < np.max(np.abs(np.diff(buzzy)))
@@ -127,14 +121,12 @@ def test_melody_accepts_a_different_voice():
 
 
 def test_chord_plays_notes_simultaneously():
-    """A chord is as long as one note, not three — that's what makes it a
-    chord rather than a melody."""
+    """A chord lasts as long as one note, not three."""
     assert len(chord("C4 E4 G4", length=0.5)) == pytest.approx(SAMPLE_RATE * 0.5, rel=0.01)
 
 
 def test_chord_is_louder_than_one_of_its_notes():
-    """Three waves summed must peak higher than one alone, which is the
-    evidence they're genuinely overlapping."""
+    """Three waves summed must peak higher than one alone."""
     one = square(freq=note("C4"), length=0.5, volume=0.15)
     three = chord("C4 E4 G4", length=0.5, volume=0.15)
     assert np.max(np.abs(three)) > np.max(np.abs(one)) * 1.5
@@ -149,8 +141,7 @@ def test_arpeggio_has_the_requested_duration():
 
 
 def test_arpeggio_cycles_through_the_notes():
-    """Slow the rate right down and the individual notes become measurable:
-    the first chunk should be C4, the second E4, the third G4."""
+    """Slowed right down, each chunk should hold one note of the chord."""
     slow = arpeggio("C4 E4 G4", length=0.9, rate=0.3)
     third = len(slow) // 3
 
@@ -162,7 +153,7 @@ def test_arpeggio_cycles_through_the_notes():
 
 
 def test_arpeggio_and_chord_use_the_same_notes_differently():
-    """Same input, same duration, completely different construction."""
+    """Same input and duration, different construction."""
     assert len(arpeggio("C4 E4 G4", length=0.5)) == pytest.approx(
         len(chord("C4 E4 G4", length=0.5)), rel=0.05
     )
@@ -193,7 +184,7 @@ def test_at_delays_a_sound():
 
 
 def test_layer_pads_to_the_longest_sound():
-    """The reason layer exists: plain `+` refuses to add mismatched lengths."""
+    """Plain `+` refuses to add mismatched lengths."""
     short, long = melody("C4"), melody("C4 C4 C4 C4")
 
     with pytest.raises(ValueError):
@@ -208,8 +199,7 @@ def test_layer_actually_mixes():
 
 
 def test_at_and_layer_together_place_sounds_in_time():
-    """The arrangement idiom from the README, checked: two hits half a second
-    apart, with real silence between them."""
+    """Two hits half a second apart, with silence between them."""
     hit = melody("C4", bpm=240)  # short
     track = layer(at(0.0, hit), at(0.5, hit))
 

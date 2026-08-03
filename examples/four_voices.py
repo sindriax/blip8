@@ -1,21 +1,15 @@
-"""All four NES voices, one after another. Run me with:
-
-    uv run examples/four_voices.py
-
-Listen for the point of the whole file: the square and the triangle play the
-SAME note (220 Hz), and sound nothing alike.
-"""
+"""Square, triangle and noise. Run with: uv run examples/four_voices.py"""
 
 from blip8 import noise, play, square, triangle
 
-print("pulse 1 — square, 220 Hz. Buzzy. This carries melodies.")
+print("square, 220 Hz — buzzy, carries melodies")
 play(square(freq=220, length=0.6))
 
-print("triangle — same 220 Hz. Soft, flute-ish. This carries basslines.")
+print("triangle, the same 220 Hz — soft, carries basslines")
 play(triangle(freq=220, length=0.6))
 
-print("...and both together, which is a chiptune bass + melody in two lines:")
+print("both together: bass and melody")
 play(square(freq=440, length=0.6) + triangle(freq=220, length=0.6))
 
-print("noise — no pitch at all, just static. Raw material for drums.")
+print("noise — no pitch at all, raw material for drums")
 play(noise(length=0.6))

@@ -125,7 +125,6 @@ def test_plotting_a_long_sound_shows_its_envelope_not_noise():
 
 
 def test_show_prints_the_plot(capsys):
-    """`capsys` is a pytest fixture that captures stdout."""
     show(square(freq=440, length=0.01), width=20, height=5)
     assert "█" in capsys.readouterr().out
 

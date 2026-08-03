@@ -1,32 +1,14 @@
-"""Tests for the oscillators.
-
-How do you test a *sound*? You can't assert "this sounds like a Game Boy". But
-every claim in wave.py's docstrings is secretly a claim about numbers, and
-numbers you can check:
-
-    "half a second long"        → the array has SAMPLE_RATE * 0.5 items
-    "square jumps, never slides" → only two distinct values ever appear
-    "duty is the fraction up"    → count how many samples are positive
-    "440 Hz means 440 cycles/s"  → count the cycles
-
-Run them all with:  uv run pytest
-"""
+"""Tests for the oscillators."""
 
 import numpy as np
 import pytest
 
 from blip8 import BELL_TABLE, SAMPLE_RATE, SINE_TABLE, noise, square, triangle, wavetable
 
-# pytest collects any function starting with `test_` in any file named
-# `test_*.py`. No registration, no suite object — that's the whole convention.
-
-
 # --------------------------------------------------------------------------
 # Things that must be true of ALL three oscillators
 # --------------------------------------------------------------------------
 
-# A list of (human name, function) pairs. `parametrize` below runs the test
-# once per entry, so one test function becomes three reported test cases.
 OSCILLATORS = [
     ("square", lambda length: square(freq=440, length=length)),
     ("triangle", lambda length: triangle(freq=440, length=length)),
@@ -43,11 +25,7 @@ def test_length_matches_seconds_requested(name, osc):
 
 @pytest.mark.parametrize(("name", "osc"), OSCILLATORS)
 def test_never_exceeds_speaker_range(name, osc):
-    """Samples outside -1.0..1.0 get clipped on save and sound like crackle.
-
-    np.all() is NumPy's "every item passes" — it collapses a whole array of
-    True/False into one answer.
-    """
+    """Samples outside -1.0..1.0 get clipped on save and sound like crackle."""
     samples = osc(0.1)
     assert np.all(samples >= -1.0)
     assert np.all(samples <= 1.0)
@@ -67,22 +45,15 @@ def test_returns_float_array(name, osc):
 
 
 def test_square_only_has_two_values():
-    """The defining property: a square is either fully up or fully down.
-
-    No in-between positions, ever. That's what makes it buzz, and it's what
-    distinguishes it from triangle.
-    """
+    """A square is either fully up or fully down, with nothing in between."""
     samples = square(freq=440, length=0.1, volume=0.4)
     assert sorted(np.unique(samples)) == [-0.4, 0.4]
 
 
 def test_square_jumps_but_triangle_slides():
-    """The buzzy-vs-soft difference, expressed as a number.
-
-    np.diff() gives the gap between each pair of neighbouring samples. For a
-    square that gap is the entire range (a hard jump). For a triangle it's a
-    tiny step, because it ramps.
-    """
+    """The buzzy-versus-soft difference, as a number: the gap between
+    neighbouring samples is the full range for a square and tiny for a
+    triangle."""
     biggest_square_step = np.max(np.abs(np.diff(square(freq=440, length=0.1))))
     biggest_triangle_step = np.max(np.abs(np.diff(triangle(freq=440, length=0.1))))
 
@@ -117,8 +88,7 @@ def test_triangle_uses_the_full_range():
 
 
 def test_triangle_has_many_distinct_values():
-    """Contrast with test_square_only_has_two_values — this is the same test
-    from the other side. Sliding means lots of intermediate positions."""
+    """The counterpart to test_square_only_has_two_values."""
     samples = triangle(freq=440, length=0.1)
     assert len(np.unique(samples)) > 50
 
@@ -140,12 +110,8 @@ def test_noise_is_centred_on_zero():
 
 
 def test_noise_has_no_pitch():
-    """The claim in the docstring: static has no repeating cycle.
-
-    A pitched wave crosses zero a predictable number of times (twice per
-    cycle). Noise crosses it constantly and unpredictably — far more often
-    than any musical note would.
-    """
+    """A pitched wave crosses zero twice per cycle; noise crosses it far more
+    often than any musical note would."""
     crossings = _count_cycles(noise(length=1.0))
     assert crossings > 5000
 
@@ -158,8 +124,8 @@ def test_noise_has_no_pitch():
 @pytest.mark.parametrize("freq", [110, 220, 440, 880])
 @pytest.mark.parametrize("osc", [square, triangle])
 def test_freq_really_means_cycles_per_second(osc, freq):
-    """freq=440 over 0.5s must produce 220 repeats. This is the test that
-    would catch an off-by-a-factor-of-two error in the phase math."""
+    """freq=440 over 0.5s must produce 220 repeats. Catches a factor-of-two
+    error in the phase maths."""
     samples = osc(freq=freq, length=0.5)
     assert _count_cycles(samples) == pytest.approx(freq * 0.5, abs=1)
 
@@ -235,19 +201,15 @@ def test_sweep_still_respects_duty():
 
 
 def test_a_two_entry_table_is_exactly_a_square_wave():
-    """The clearest proof the indexing maths is right.
-
-    [1.0, -1.0] means "first half of the cycle up, second half down", which is
-    the definition of a square wave at duty 0.5 — so the two functions should
-    agree sample for sample, not merely sound similar.
-    """
+    """[1.0, -1.0] is the definition of a square wave at duty 0.5, so the two
+    functions must agree sample for sample, not merely sound similar."""
     from_table = wavetable([1.0, -1.0], freq=440, length=0.25)
     from_square = square(freq=440, length=0.25, duty=0.5)
     assert np.array_equal(from_table, from_square)
 
 
 def test_wavetable_only_outputs_values_from_the_table():
-    """It's a lookup, not a calculation — nothing else may appear."""
+    """It is a lookup, not a calculation."""
     table = [1.0, 0.5, 0.0, -0.5]
     samples = wavetable(table, freq=440, length=0.1, volume=1.0)
     assert set(np.unique(samples)).issubset(set(table))
@@ -260,16 +222,13 @@ def test_wavetable_length_and_volume():
 
 
 def test_wavetable_accepts_a_plain_python_list():
-    """Users shouldn't need to know what a NumPy array is to define a shape."""
+    """Callers should not have to build an array to define a shape."""
     assert len(wavetable([0.0, 1.0, 0.0, -1.0], freq=440, length=0.1)) > 0
 
 
 def test_wavetable_takes_the_pitch_of_the_table_not_its_length():
-    """A 4-entry and a 32-entry table at 440 Hz must be the same note.
-
-    The table describes the *shape* of one cycle; how many numbers it took to
-    describe it must not affect pitch.
-    """
+    """A table describes the shape of one cycle; how many values it uses must
+    not affect pitch."""
     short = _count_cycles(wavetable([1.0, 1.0, -1.0, -1.0], freq=440, length=0.5))
     long = _count_cycles(wavetable(SINE_TABLE, freq=440, length=0.5))
     assert short == pytest.approx(long, abs=1)
@@ -289,8 +248,7 @@ def test_preset_tables_are_game_boy_shaped(name, table):
 
 
 def test_sine_table_is_smooth():
-    """A sine has no jumps — that's what makes it the purest tone. Same test
-    shape as the square-vs-triangle comparison above."""
+    """A sine has no jumps between neighbouring samples."""
     samples = wavetable(SINE_TABLE, freq=100, length=0.1)
     assert np.max(np.abs(np.diff(samples))) < 0.2
 
@@ -301,13 +259,6 @@ def test_sine_table_is_smooth():
 
 
 def _count_cycles(samples: np.ndarray) -> int:
-    """Count how many times the wave goes from negative to positive.
-
-    That happens exactly once per cycle, so for a pitched wave this is the
-    number of repeats — a way to measure pitch without any Fourier maths.
-    Leading underscore = "internal helper", and it stops pytest collecting
-    this as a test.
-    """
+    """Count negative-to-positive crossings, which happen once per cycle."""
     positive = samples > 0
-    # A rising edge is a False immediately followed by a True.
     return int(np.count_nonzero(~positive[:-1] & positive[1:]))
