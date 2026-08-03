@@ -7,11 +7,11 @@ Boy, generated from scratch. No samples, no recordings, no dependencies beyond
 NumPy. Every sound is arithmetic.
 
 ```python
-from blip8 import play, sfx
+from blip8 import melody, play, sfx
 
+play(melody("E4 E4 F4 G4 G4 F4 E4 D4", bpm=140))   # a tune, in one line
 play(sfx.coin())
-play(sfx.laser())
-play(sfx.kick() + sfx.hat())   # adding arrays mixes them
+play(sfx.kick() + sfx.hat())                        # adding arrays mixes them
 ```
 
 Or build sounds yourself from the raw waveforms:
@@ -43,6 +43,7 @@ uv run examples/first_beep.py     # two square waves, and the duty knob
 uv run examples/four_voices.py    # square vs triangle vs noise
 uv run examples/sound_design.py   # snare, crash, kick, laser, power-up, coin
 uv run examples/sfx_menu.py       # every recipe, the wave channel, a drum groove
+uv run examples/melody.py         # actual music: four voices, chords vs arpeggios
 ```
 
 `uv` sets up Python and installs NumPy on first run — nothing else to do.
@@ -100,10 +101,39 @@ Each returns an array rather than playing it, so they mix (`+`), chain, and
 `save()`. Every one is built only from the waveforms and shapers above — open
 `src/blip8/sfx.py` to see exactly what any given sound is made of.
 
+## Music
+
+Nobody thinks in Hz, so `note("E5")` converts names to frequencies — an octave
+up doubles the frequency, and a semitone is the twelfth root of two.
+
+Patterns are strings, one token per step in time. A note name plays, `.` holds
+the note before it, `-` rests:
+
+```python
+melody("C4 E4 G4 C5", bpm=120)                    # four sixteenth notes
+melody("C2 . . . G2 . . .", voice=triangle)       # a bassline, notes held
+melody("C5 - C5 -", duty=0.125)                   # extra kwargs reach the voice
+```
+
+That's a **tracker** — the text-grid format chiptune musicians actually use,
+arrived at because it's the obvious way to write music as a string.
+
+`chord("C4 E4 G4")` plays notes together; `arpeggio("C4 E4 G4")` plays them one
+at a time, fast, until your ear fuses them into a chord. The second one exists
+because the NES only had four voices and couldn't spare three for one chord —
+which is why chiptune has that frantic bubbling sound.
+
+Arrangement is two functions. `at(time, sound)` delays; `layer(*sounds)` mixes,
+padding to the longest:
+
+```python
+layer(at(0.0, sfx.kick()), at(0.5, sfx.snare()))
+```
+
 ## Develop
 
 ```sh
-uv run pytest        # 140 tests, all asserting things you can hear
+uv run pytest        # 196 tests, all asserting things you can hear
 uv run ruff check .  # lint
 uv run ruff format . # format
 ```
@@ -113,9 +143,10 @@ every claim in the docstrings turns out to be a claim about numbers.
 
 ## Status
 
-All four voices, envelopes, pitch sweeps, bit crushing, and 14 ready-made game
-sounds. Next up: note names ("E5") instead of raw frequencies, and a pattern
-format — the point where melodies start coming out instead of single effects.
+All four voices, envelopes, sweeps, bit crushing, 14 ready-made game sounds,
+note names, patterns, chords, arpeggios and arrangement. It makes music now.
+
+Next up: publishing to PyPI, then MIDI import.
 
 The roadmap ends with `blip8 cover song.mid` turning any MIDI file into an
 8-bit cover.
