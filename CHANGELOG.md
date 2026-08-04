@@ -9,7 +9,7 @@ While the major version is 0, the API may change in any minor release.
 
 ## [Unreleased]
 
-## [0.1.0]
+## [0.1.0] - 2026-08-04
 
 First release. Four voices, envelopes, patterns and a recipe library.
 

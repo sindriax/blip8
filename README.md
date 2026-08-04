@@ -1,5 +1,8 @@
 # blip8
 
+[![PyPI](https://img.shields.io/pypi/v/blip8)](https://pypi.org/project/blip8/)
+[![Python](https://img.shields.io/pypi/pyversions/blip8)](https://pypi.org/project/blip8/)
+
 Chiptune sound synthesis from code: the four voices of the NES and the Game
 Boy, generated from scratch. No samples, no recordings, no dependencies beyond
 NumPy. Every sound is arithmetic.
@@ -197,8 +200,6 @@ a cymbal crash, zoomed out to 1.2 seconds
 sweeps and bit crushing.
 
 ## Develop
-
-[![CI](https://github.com/sindriax/blip8/actions/workflows/ci.yml/badge.svg)](https://github.com/sindriax/blip8/actions/workflows/ci.yml)
 
 ```sh
 uv run pytest         # 241 tests, all asserting things you can hear
