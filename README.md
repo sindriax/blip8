@@ -1,7 +1,5 @@
 # blip8
 
-[![CI](https://github.com/sindriax/blip8/actions/workflows/ci.yml/badge.svg)](https://github.com/sindriax/blip8/actions/workflows/ci.yml)
-
 Chiptune sound synthesis from code: the four voices of the NES and the Game
 Boy, generated from scratch. No samples, no recordings, no dependencies beyond
 NumPy. Every sound is arithmetic.
@@ -40,11 +38,10 @@ it was close enough, then forgotten. The next game started from zero.
 So I wrote the library I should have written the first time. Now it is
 `pip install blip8` and `sfx.coin()`.
 
-It also turned into the thing I use to learn Python properly, coming from
-TypeScript and Go, and to find out whether audio programming is a direction I
-want to go in. The NES had four voices and no way to play a recording, which
-makes it a small enough system to build from first principles and understand
-completely.
+It is also my first real Python project, coming from TypeScript and Go, and an
+excuse to explore how synthesis actually works. The NES had four voices and no
+way to play a recording, which makes it a small enough system to build from
+first principles and understand completely.
 
 ## Hear it
 
@@ -58,7 +55,9 @@ uv run examples/see_it.py         # print the waveforms instead of playing them
 ```
 
 `uv` sets up Python and installs NumPy on first run, so there is nothing else
-to do. Playback shells out to macOS `afplay`; `save()` writes a `.wav` anywhere.
+to do. `save()` writes a `.wav` anywhere. `play()` shells out to whichever
+player the platform has (`afplay` on macOS, `aplay`, `paplay` or `ffplay` on
+Linux, `winsound` on Windows) and raises a clear error if none is present.
 
 ## The voices
 
@@ -199,14 +198,29 @@ sweeps and bit crushing.
 
 ## Develop
 
+[![CI](https://github.com/sindriax/blip8/actions/workflows/ci.yml/badge.svg)](https://github.com/sindriax/blip8/actions/workflows/ci.yml)
+
 ```sh
-uv run pytest        # 216 tests, all asserting things you can hear
-uv run ruff check .  # lint
-uv run ruff format . # format
+uv run pytest         # 241 tests, all asserting things you can hear
+uv run mypy src tests # type check, strict
+uv run ruff check .   # lint
+uv run ruff format .  # format
 ```
+
+CI runs all four on Linux, macOS and Windows across Python 3.12 and 3.13, then
+builds the package and installs the wheel into a clean environment to prove it
+imports.
+
+The package ships `py.typed`, so the annotations reach your editor rather than
+stopping at the package boundary. `Samples` and `Pitch` are exported for
+annotating your own code.
 
 The test suite is worth a read if you want to know how you test a *sound*:
 every claim in the docstrings turns out to be a claim about numbers.
+
+Releases go out from a version tag through PyPI Trusted Publishing, so no API
+token exists to leak. Design decisions with real tradeoffs are recorded in
+[docs/decisions](docs/decisions/).
 
 ## Status
 

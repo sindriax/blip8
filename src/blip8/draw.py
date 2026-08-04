@@ -2,12 +2,14 @@
 
 import numpy as np
 
+from .wave import Samples
+
 BLOCK = "█"
 AXIS = "─"
 
 
 def plot(
-    samples: np.ndarray,
+    samples: Samples,
     width: int = 72,
     height: int = 17,
     normalize: bool = False,
@@ -44,7 +46,7 @@ def plot(
 
 
 def show(
-    samples: np.ndarray,
+    samples: Samples,
     label: str = "",
     width: int = 72,
     height: int = 17,

@@ -11,33 +11,34 @@ comes from `bpm` and `steps_per_beat`.
 """
 
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
 from .notes import note
 from .shape import envelope
-from .wave import SAMPLE_RATE, square
+from .wave import SAMPLE_RATE, Samples, square
 
 #: Any oscillator callable with freq, length and volume keyword arguments.
-Voice = Callable[..., np.ndarray]
+Voice = Callable[..., Samples]
 
 
-def silence(length: float) -> np.ndarray:
+def silence(length: float) -> Samples:
     """Return `length` seconds of silence."""
     return np.zeros(int(SAMPLE_RATE * length))
 
 
-def sequence(*sounds: np.ndarray) -> np.ndarray:
+def sequence(*sounds: Samples) -> Samples:
     """Join sounds end to end."""
     return np.concatenate(sounds)
 
 
-def at(time: float, sound: np.ndarray) -> np.ndarray:
+def at(time: float, sound: Samples) -> Samples:
     """Delay a sound so it starts `time` seconds in. Use with `layer`."""
     return sequence(silence(time), sound)
 
 
-def layer(*sounds: np.ndarray) -> np.ndarray:
+def layer(*sounds: Samples) -> Samples:
     """Mix sounds together, padding to the length of the longest.
 
     Unlike `a + b`, this accepts mismatched lengths. Levels still add up, so
@@ -56,8 +57,8 @@ def melody(
     steps_per_beat: int = 4,
     voice: Voice = square,
     volume: float = 0.4,
-    **voice_options,
-) -> np.ndarray:
+    **voice_options: Any,
+) -> Samples:
     """Play a pattern string as one line of music.
 
         melody("E4 E4 F4 G4", bpm=120)
@@ -97,8 +98,8 @@ def chord(
     length: float = 0.5,
     voice: Voice = square,
     volume: float = 0.15,
-    **voice_options,
-) -> np.ndarray:
+    **voice_options: Any,
+) -> Samples:
     """Play several notes simultaneously: chord("C4 E4 G4").
 
     The default volume is low because the notes sum together.
@@ -116,8 +117,8 @@ def arpeggio(
     rate: float = 0.025,
     voice: Voice = square,
     volume: float = 0.4,
-    **voice_options,
-) -> np.ndarray:
+    **voice_options: Any,
+) -> Samples:
     """Cycle through a chord's notes one at a time: arpeggio("C4 E4 G4").
 
     At a `rate` around 0.02-0.04 the ear fuses the notes into a chord; slower

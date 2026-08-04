@@ -1,12 +1,14 @@
 """Tests for the ASCII waveform plots."""
 
+from typing import Any
+
 import numpy as np
 import pytest
 
 from blip8 import envelope, noise, plot, show, silence, square, triangle
 
 
-def _lines(*args, **kwargs) -> list[str]:
+def _lines(*args: Any, **kwargs: Any) -> list[str]:
     return plot(*args, **kwargs).split("\n")
 
 
@@ -15,28 +17,28 @@ def _lines(*args, **kwargs) -> list[str]:
 # --------------------------------------------------------------------------
 
 
-def test_plot_has_the_requested_dimensions():
+def test_plot_has_the_requested_dimensions() -> None:
     lines = _lines(square(freq=440, length=0.1), width=40, height=11)
     assert len(lines) == 11
     assert all(len(line) == 40 for line in lines)
 
 
-def test_height_is_forced_odd_so_there_is_a_centre_row():
+def test_height_is_forced_odd_so_there_is_a_centre_row() -> None:
     assert len(_lines(square(freq=440, length=0.1), height=10)) == 11
 
 
 @pytest.mark.parametrize("height", [1, 2, 3])
-def test_tiny_heights_do_not_crash(height):
+def test_tiny_heights_do_not_crash(height: int) -> None:
     assert len(_lines(square(freq=440, length=0.1), height=height)) == 3
 
 
-def test_short_sounds_use_one_column_per_sample_at_most():
+def test_short_sounds_use_one_column_per_sample_at_most() -> None:
     lines = _lines(square(freq=440, length=0.0002), width=72)
     assert all(len(line) <= 72 for line in lines)
     assert len(lines[0]) == 8
 
 
-def test_empty_input_gives_empty_output():
+def test_empty_input_gives_empty_output() -> None:
     assert plot(np.array([])) == ""
 
 
@@ -45,14 +47,14 @@ def test_empty_input_gives_empty_output():
 # --------------------------------------------------------------------------
 
 
-def test_silence_draws_a_flat_line_at_zero():
+def test_silence_draws_a_flat_line_at_zero() -> None:
     """The waveform sits exactly on the axis, so the centre row is the wave."""
     lines = _lines(silence(0.1), width=20, height=11)
     assert lines[5] == "█" * 20
     assert all(line.strip() == "" for index, line in enumerate(lines) if index != 5)
 
 
-def test_the_axis_shows_through_at_high_zoom():
+def test_the_axis_shows_through_at_high_zoom() -> None:
     """Zoomed in far enough that a column sits entirely above or below zero,
     the centre row stays visible as an axis. Zoomed out, every column spans
     both halves of the wave and covers it."""
@@ -63,13 +65,13 @@ def test_the_axis_shows_through_at_high_zoom():
     assert "─" not in zoomed_out[6]
 
 
-def test_a_loud_square_reaches_the_top_and_bottom_rows():
+def test_a_loud_square_reaches_the_top_and_bottom_rows() -> None:
     lines = _lines(square(freq=440, length=0.1, volume=1.0), width=40, height=11)
     assert "█" in lines[0]
     assert "█" in lines[-1]
 
 
-def test_a_quiet_sound_stays_near_the_middle():
+def test_a_quiet_sound_stays_near_the_middle() -> None:
     """With normalize off, the plot shows true amplitude."""
     lines = _lines(square(freq=440, length=0.1, volume=0.2), width=40, height=21)
     assert "█" not in lines[0]
@@ -77,13 +79,13 @@ def test_a_quiet_sound_stays_near_the_middle():
     assert "█" in lines[10]
 
 
-def test_normalize_scales_a_quiet_sound_to_full_height():
+def test_normalize_scales_a_quiet_sound_to_full_height() -> None:
     quiet = square(freq=440, length=0.1, volume=0.05)
     assert "█" not in _lines(quiet, height=11)[0]
     assert "█" in _lines(quiet, height=11, normalize=True)[0]
 
 
-def test_normalize_survives_pure_silence():
+def test_normalize_survives_pure_silence() -> None:
     """Guards a division by zero: the peak of silence is 0."""
     assert plot(silence(0.05), normalize=True) != ""
 
@@ -93,7 +95,7 @@ def test_normalize_survives_pure_silence():
 # --------------------------------------------------------------------------
 
 
-def test_square_fills_more_than_triangle():
+def test_square_fills_more_than_triangle() -> None:
     """A square sits at its extremes; a triangle spends most of its time in
     between, so it paints fewer blocks in the outer rows."""
     seconds = 0.007
@@ -102,7 +104,7 @@ def test_square_fills_more_than_triangle():
     assert square_top.count("█") > triangle_top.count("█") * 3
 
 
-def test_a_decaying_sound_narrows_towards_the_end():
+def test_a_decaying_sound_narrows_towards_the_end() -> None:
     """The envelope becomes visible: tall at the start, thin at the end."""
     crash = envelope(noise(length=1.0), attack=0.001, decay=1.0, sustain=0.0, release=0.0)
     lines = _lines(crash, width=40, height=21)
@@ -111,7 +113,7 @@ def test_a_decaying_sound_narrows_towards_the_end():
     assert filled_per_column[0] > filled_per_column[20] > filled_per_column[-1]
 
 
-def test_plotting_a_long_sound_shows_its_envelope_not_noise():
+def test_plotting_a_long_sound_shows_its_envelope_not_noise() -> None:
     """Every column of a sustained tone should be filled to the same height."""
     tone = square(freq=440, length=2.0, volume=0.8)
     lines = _lines(tone, width=40, height=21)
@@ -124,11 +126,11 @@ def test_plotting_a_long_sound_shows_its_envelope_not_noise():
 # --------------------------------------------------------------------------
 
 
-def test_show_prints_the_plot(capsys):
+def test_show_prints_the_plot(capsys: pytest.CaptureFixture[str]) -> None:
     show(square(freq=440, length=0.01), width=20, height=5)
     assert "█" in capsys.readouterr().out
 
 
-def test_show_prints_the_label_first(capsys):
+def test_show_prints_the_label_first(capsys: pytest.CaptureFixture[str]) -> None:
     show(square(freq=440, length=0.01), label="a square", width=20, height=5)
     assert capsys.readouterr().out.startswith("a square\n")

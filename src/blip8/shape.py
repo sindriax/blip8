@@ -2,16 +2,16 @@
 
 import numpy as np
 
-from .wave import SAMPLE_RATE
+from .wave import SAMPLE_RATE, Samples
 
 
 def envelope(
-    samples: np.ndarray,
+    samples: Samples,
     attack: float = 0.01,
     decay: float = 0.0,
     sustain: float = 1.0,
     release: float = 0.05,
-) -> np.ndarray:
+) -> Samples:
     """Apply an ADSR volume curve.
 
         attack   ┌╮                 seconds to fade in from silence
@@ -25,6 +25,11 @@ def envelope(
 
     Fades are linear. Real instruments decay on a curve.
     """
+    if not 0.0 <= sustain <= 1.0:
+        raise ValueError(f"sustain is a level between 0.0 and 1.0, got {sustain}")
+    if min(attack, decay, release) < 0:
+        raise ValueError("attack, decay and release must not be negative")
+
     count = len(samples)
 
     attack_len = int(attack * SAMPLE_RATE)
@@ -48,13 +53,19 @@ def envelope(
             np.linspace(sustain, 0.0, release_len),
         ]
     )
-    return samples * gain
+    shaped: Samples = samples * gain
+    return shaped
 
 
-def crunch(samples: np.ndarray, bits: int = 4) -> np.ndarray:
-    """Quantise samples to 2**bits levels — bitcrushing.
+def crunch(samples: Samples, bits: int = 4) -> Samples:
+    """Quantise samples to 2**bits levels, which is bitcrushing.
 
-    bits=4 matches the Game Boy's wave channel. Lower is grittier.
+    bits=4 matches the Game Boy's wave channel. Lower is grittier. Below 2 the
+    result is silence rather than grit, so it is rejected.
     """
+    if bits < 2:
+        raise ValueError(f"bits must be at least 2, got {bits}")
+
     half = 2**bits / 2
-    return np.round(samples * half) / half
+    crushed: Samples = np.round(samples * half) / half
+    return crushed

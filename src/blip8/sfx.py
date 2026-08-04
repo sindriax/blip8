@@ -7,10 +7,10 @@ Each recipe returns an array rather than playing it, so they can be mixed with
 import numpy as np
 
 from .shape import envelope
-from .wave import SINE_TABLE, noise, square, triangle, wavetable
+from .wave import SINE_TABLE, Samples, noise, square, triangle, wavetable
 
 
-def blip(freq: float = 880, length: float = 0.06) -> np.ndarray:
+def blip(freq: float = 880, length: float = 0.06) -> Samples:
     """A short neutral beep for menu movement or advancing text."""
     return envelope(
         square(freq=freq, length=length, duty=0.5, volume=0.4),
@@ -19,17 +19,17 @@ def blip(freq: float = 880, length: float = 0.06) -> np.ndarray:
     )
 
 
-def select() -> np.ndarray:
+def select() -> Samples:
     """Two rising notes: confirm."""
     return _join(blip(freq=660, length=0.05), blip(freq=990, length=0.09))
 
 
-def back() -> np.ndarray:
+def back() -> Samples:
     """Two falling notes: cancel."""
     return _join(blip(freq=660, length=0.05), blip(freq=440, length=0.09))
 
 
-def coin() -> np.ndarray:
+def coin() -> Samples:
     """A short high note followed by a longer one above it."""
     return _join(
         envelope(square(freq=988, length=0.07, volume=0.4), attack=0.001, release=0.01),
@@ -37,7 +37,7 @@ def coin() -> np.ndarray:
     )
 
 
-def jump() -> np.ndarray:
+def jump() -> Samples:
     """A fast rise on a thin duty cycle."""
     return envelope(
         square(freq=(400, 900), length=0.12, duty=0.125, volume=0.4),
@@ -46,12 +46,12 @@ def jump() -> np.ndarray:
     )
 
 
-def powerup() -> np.ndarray:
+def powerup() -> Samples:
     """A major chord arpeggiated upwards."""
     return _join(*[blip(freq=f, length=0.06) for f in (523, 659, 784, 1047)])
 
 
-def laser() -> np.ndarray:
+def laser() -> Samples:
     """Pitch falling steeply. Shooting, zapping, dashing."""
     return envelope(
         square(freq=(1800, 200), length=0.25, duty=0.25, volume=0.45),
@@ -60,7 +60,7 @@ def laser() -> np.ndarray:
     )
 
 
-def hurt() -> np.ndarray:
+def hurt() -> Samples:
     """Falling and deliberately harsh, on the thinnest duty setting."""
     return envelope(
         square(freq=(440, 110), length=0.2, duty=0.125, volume=0.45),
@@ -69,7 +69,7 @@ def hurt() -> np.ndarray:
     )
 
 
-def explosion() -> np.ndarray:
+def explosion() -> Samples:
     """Noise for the debris layered with a low falling triangle for the thump."""
     debris = envelope(
         noise(length=0.9, volume=0.35), attack=0.001, decay=0.9, sustain=0.0, release=0.0
@@ -84,7 +84,7 @@ def explosion() -> np.ndarray:
     return debris + thump
 
 
-def chime() -> np.ndarray:
+def chime() -> Samples:
     """A pure tone with a long fade. Checkpoint or puzzle solved."""
     return envelope(
         wavetable(SINE_TABLE, freq=1047, length=1.0, volume=0.4),
@@ -95,7 +95,7 @@ def chime() -> np.ndarray:
     )
 
 
-def kick() -> np.ndarray:
+def kick() -> Samples:
     """A triangle dropping from 120 Hz to 40 Hz."""
     return envelope(
         triangle(freq=(120, 40), length=0.25, volume=0.5),
@@ -106,7 +106,7 @@ def kick() -> np.ndarray:
     )
 
 
-def snare() -> np.ndarray:
+def snare() -> Samples:
     """Fast-decaying noise with a low tone underneath for body."""
     body = envelope(
         noise(length=0.15, volume=0.35), attack=0.001, decay=0.15, sustain=0.0, release=0.0
@@ -121,7 +121,7 @@ def snare() -> np.ndarray:
     return body + tone
 
 
-def hat() -> np.ndarray:
+def hat() -> Samples:
     """A very short tick of noise.
 
     A real hi-hat is high-passed noise; with no filter available, keeping it
@@ -132,12 +132,12 @@ def hat() -> np.ndarray:
     )
 
 
-def crash() -> np.ndarray:
+def crash() -> Samples:
     """The same noise as `snare` over 1.5 seconds instead of 0.15."""
     return envelope(
         noise(length=1.5, volume=0.35), attack=0.001, decay=1.5, sustain=0.0, release=0.0
     )
 
 
-def _join(*sounds: np.ndarray) -> np.ndarray:
+def _join(*sounds: Samples) -> Samples:
     return np.concatenate(sounds)

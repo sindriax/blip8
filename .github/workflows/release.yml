@@ -1,0 +1,69 @@
+# Publishes to PyPI when a version tag is pushed.
+#
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# Authentication is Trusted Publishing: PyPI verifies this workflow's identity
+# through OpenID Connect, so there is no API token stored anywhere. Configure
+# it once at https://pypi.org/manage/account/publishing/ with:
+#
+#     owner: sindriax        repository: blip8
+#     workflow: release.yml  environment: pypi
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  # Never publish something that does not pass its own tests.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run mypy src tests
+      - run: uv run pytest -q
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      # A tag of v0.2.0 must not publish a package that says 0.1.0.
+      - name: Check the tag matches the package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          packaged=$(uv run python -c "
+          import tomllib, pathlib
+          print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])
+          ")
+          if [ "$tag" != "$packaged" ]; then
+            echo "::error::tag $tag does not match pyproject version $packaged"
+            exit 1
+          fi
+          echo "publishing $packaged"
+
+      - run: uv build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # required for Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

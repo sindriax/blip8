@@ -6,13 +6,13 @@ import pytest
 from blip8 import SAMPLE_RATE, SINE_TABLE, crunch, envelope, square, triangle, wavetable
 
 
-def test_envelope_does_not_change_the_length():
+def test_envelope_does_not_change_the_length() -> None:
     """It reshapes volume; it must not add or remove samples."""
     samples = square(freq=440, length=0.5)
     assert len(envelope(samples)) == len(samples)
 
 
-def test_envelope_starts_and_ends_at_silence():
+def test_envelope_starts_and_ends_at_silence() -> None:
     """The anti-click test: a sound starting or ending at full amplitude makes
     the speaker jump, which is audible as a tick."""
     shaped = envelope(square(freq=440, length=0.5), attack=0.01, release=0.05)
@@ -20,13 +20,13 @@ def test_envelope_starts_and_ends_at_silence():
     assert shaped[-1] == pytest.approx(0.0, abs=0.01)
 
 
-def test_raw_wave_does_not_start_at_silence():
+def test_raw_wave_does_not_start_at_silence() -> None:
     """The counterpart to the previous test, proving the problem is real."""
     raw = square(freq=440, length=0.5, volume=0.5)
     assert abs(raw[0]) == pytest.approx(0.5)
 
 
-def test_attack_fades_in_gradually():
+def test_attack_fades_in_gradually() -> None:
     """During the attack the sound should be getting louder, not be loud."""
     shaped = envelope(square(freq=440, length=0.5, volume=0.5), attack=0.1)
 
@@ -41,7 +41,7 @@ def test_attack_fades_in_gradually():
     assert early < later < 0.5
 
 
-def test_sustain_zero_means_the_sound_dies():
+def test_sustain_zero_means_the_sound_dies() -> None:
     """A drum hit: loud at the start, silent by the end."""
     shaped = envelope(
         square(freq=440, length=0.5), attack=0.001, decay=0.2, sustain=0.0, release=0.0
@@ -50,14 +50,14 @@ def test_sustain_zero_means_the_sound_dies():
     assert np.max(np.abs(shaped[-1000:])) == pytest.approx(0.0, abs=0.001)  # gone
 
 
-def test_envelope_never_makes_a_sound_louder():
+def test_envelope_never_makes_a_sound_louder() -> None:
     """Gain never exceeds 1.0, so this can only attenuate."""
     raw = square(freq=440, length=0.3, volume=0.5)
     shaped = envelope(raw)
     assert np.max(np.abs(shaped)) <= np.max(np.abs(raw))
 
 
-def test_stages_longer_than_the_sound_get_squeezed_not_crashed():
+def test_stages_longer_than_the_sound_get_squeezed_not_crashed() -> None:
     """A 5-second release on a 0.1-second beep must still produce a
     correctly-sized result that is silent at both ends."""
     shaped = envelope(square(freq=440, length=0.1), attack=2.0, decay=3.0, release=5.0)
@@ -67,7 +67,7 @@ def test_stages_longer_than_the_sound_get_squeezed_not_crashed():
     assert shaped[-1] == pytest.approx(0.0, abs=0.01)
 
 
-def test_no_attack_or_release_leaves_the_sound_alone():
+def test_no_attack_or_release_leaves_the_sound_alone() -> None:
     """With every stage switched off, the envelope should be a no-op."""
     raw = square(freq=440, length=0.2)
     shaped = envelope(raw, attack=0.0, decay=0.0, sustain=1.0, release=0.0)
@@ -79,7 +79,7 @@ def test_no_attack_or_release_leaves_the_sound_alone():
 # --------------------------------------------------------------------------
 
 
-def test_crunch_reduces_the_number_of_distinct_values():
+def test_crunch_reduces_the_number_of_distinct_values() -> None:
     """A triangle slides through hundreds of values; at 4 bits it may use
     only sixteen."""
     smooth = triangle(freq=440, length=0.1)
@@ -89,25 +89,25 @@ def test_crunch_reduces_the_number_of_distinct_values():
     assert len(np.unique(crushed)) <= 17
 
 
-def test_crunch_keeps_the_length():
+def test_crunch_keeps_the_length() -> None:
     samples = wavetable(SINE_TABLE, freq=440, length=0.2)
     assert len(crunch(samples)) == len(samples)
 
 
-def test_fewer_bits_means_fewer_levels():
+def test_fewer_bits_means_fewer_levels() -> None:
     """2 bits must be coarser than 4, which must be coarser than 8."""
     smooth = triangle(freq=440, length=0.1)
     counts = [len(np.unique(crunch(smooth, bits=b))) for b in (2, 4, 8)]
     assert counts[0] < counts[1] < counts[2]
 
 
-def test_crunch_stays_in_speaker_range():
+def test_crunch_stays_in_speaker_range() -> None:
     """Rounding must never push a sample past 1.0 and cause clipping."""
     loud = triangle(freq=440, length=0.1, volume=1.0)
     assert np.max(np.abs(crunch(loud, bits=4))) <= 1.0
 
 
-def test_crunch_is_roughly_faithful():
+def test_crunch_is_roughly_faithful() -> None:
     """Each sample must stay within half a level of where it started."""
     smooth = triangle(freq=440, length=0.1)
     error = np.max(np.abs(crunch(smooth, bits=4) - smooth))

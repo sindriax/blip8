@@ -8,7 +8,17 @@ from .notes import midi_to_freq, note, note_to_midi
 from .pattern import arpeggio, at, chord, layer, melody, sequence, silence
 from .play import play, save
 from .shape import crunch, envelope
-from .wave import BELL_TABLE, SAMPLE_RATE, SINE_TABLE, noise, square, triangle, wavetable
+from .wave import (
+    BELL_TABLE,
+    SAMPLE_RATE,
+    SINE_TABLE,
+    Pitch,
+    Samples,
+    noise,
+    square,
+    triangle,
+    wavetable,
+)
 
 try:
     __version__ = version("blip8")
@@ -19,6 +29,8 @@ __all__ = [
     "BELL_TABLE",
     "SAMPLE_RATE",
     "SINE_TABLE",
+    "Pitch",
+    "Samples",
     "__version__",
     "arpeggio",
     "at",
