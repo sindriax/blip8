@@ -230,3 +230,9 @@ note names, patterns, chords, arpeggios and arrangement. It makes music now.
 
 The roadmap ends with `blip8 cover song.mid` turning any MIDI file into an
 8-bit cover.
+
+## the blip8 family
+
+- 🦇 [blip8](https://github.com/sindriax/blip8): the Python chiptune synthesis library. `pip install blip8`
+- 🧪 [blip8 lab](https://sindriax.itch.io/blip8-lab): make 8-bit sounds in your browser ([source](https://github.com/sindriax/blip8-lab))
+- 📦 [blip8 sounds](https://sindriax.itch.io/blip8-sounds): free CC0 chiptune SFX packs, generated from code ([source](https://github.com/sindriax/blip8-sounds))
