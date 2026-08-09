@@ -32,6 +32,12 @@ play(square(freq=(1800, 200), length=0.25))     # a (start, end) pitch = laser
 play(envelope(noise(length=1.5), decay=1.5, sustain=0.0))  # noise + fade = cymbal
 ```
 
+## the blip8 family
+
+- 🦇 [blip8](https://github.com/sindriax/blip8): the Python chiptune synthesis library. `pip install blip8`
+- 🧪 [blip8 lab](https://sindriax.itch.io/blip8-lab): make 8-bit sounds in your browser ([source](https://github.com/sindriax/blip8-lab))
+- 📦 [blip8 sounds](https://sindriax.itch.io/blip8-sounds): free CC0 chiptune SFX packs, generated from code ([source](https://github.com/sindriax/blip8-sounds))
+
 ## Why I made this
 
 Every time I built a game I ended up writing the same throwaway script again:
@@ -231,8 +237,3 @@ note names, patterns, chords, arpeggios and arrangement. It makes music now.
 The roadmap ends with `blip8 cover song.mid` turning any MIDI file into an
 8-bit cover.
 
-## the blip8 family
-
-- 🦇 [blip8](https://github.com/sindriax/blip8): the Python chiptune synthesis library. `pip install blip8`
-- 🧪 [blip8 lab](https://sindriax.itch.io/blip8-lab): make 8-bit sounds in your browser ([source](https://github.com/sindriax/blip8-lab))
-- 📦 [blip8 sounds](https://sindriax.itch.io/blip8-sounds): free CC0 chiptune SFX packs, generated from code ([source](https://github.com/sindriax/blip8-sounds))
