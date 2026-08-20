@@ -34,6 +34,7 @@ play(envelope(noise(length=1.5), decay=1.5, sustain=0.0))  # noise + fade = cymb
 
 ## the blip8 family
 
+- 🏠 [blip8.sindriax.dev](https://blip8.sindriax.dev): the front door, all three in one place
 - 🦇 [blip8](https://github.com/sindriax/blip8): the Python chiptune synthesis library. `pip install blip8`
 - 🧪 [blip8 lab](https://sindriax.itch.io/blip8-lab): make 8-bit sounds in your browser ([source](https://github.com/sindriax/blip8-lab))
 - 📦 [blip8 sounds](https://sindriax.itch.io/blip8-sounds): free CC0 chiptune SFX packs, generated from code ([source](https://github.com/sindriax/blip8-sounds))
