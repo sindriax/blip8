@@ -32,7 +32,7 @@ play(square(freq=(1800, 200), length=0.25))     # a (start, end) pitch = laser
 play(envelope(noise(length=1.5), decay=1.5, sustain=0.0))  # noise + fade = cymbal
 ```
 
-## the blip8 family
+## the blip8 shelf
 
 - 🏠 [blip8.sindriax.dev](https://blip8.sindriax.dev): the front door, all three in one place
 - 🦇 [blip8](https://github.com/sindriax/blip8): the Python chiptune synthesis library. `pip install blip8`
