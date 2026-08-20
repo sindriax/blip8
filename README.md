@@ -62,6 +62,7 @@ uv run examples/sound_design.py   # snare, crash, kick, laser, power-up, coin
 uv run examples/sfx_menu.py       # every recipe, the wave channel, a drum groove
 uv run examples/melody.py         # actual music: four voices, chords vs arpeggios
 uv run examples/see_it.py         # print the waveforms instead of playing them
+uv run examples/save_a_pack.py    # write 17 .wav files, no audio device needed
 ```
 
 `uv` sets up Python and installs NumPy on first run, so there is nothing else
